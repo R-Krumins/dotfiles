@@ -15,7 +15,7 @@ vim.g.have_nerd_font = true
 -- Tabs
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
---vim.bo.expandtab = true
+vim.bo.expandtab = false
 
 -- Make line numbers default
 vim.opt.number = true
@@ -111,6 +111,9 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+-- Yank to system clipboard
+vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { desc = 'Yank to system clipbaord' })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`

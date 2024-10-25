@@ -72,6 +72,7 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 alias ls='ls --color'
 alias fzfp='fzf --preview "batcat --color=always {}" --preview-window "~3"'
 alias cb='cd ~/batcave'
+alias n='nvim'
 # Path
 export PATH="$PATH:/usr/local/go/bin"
 
