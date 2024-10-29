@@ -70,9 +70,16 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
 # Aliases
 alias ls='ls --color'
-alias fzfp='fzf --preview "batcat --color=always {}" --preview-window "~3"'
-alias cb='cd ~/batcave'
 alias n='nvim'
+# [C]hange dir [B]atcave
+alias cb='cd ~/batcave'
+# [B]atcave [O]pen [D]irectory
+alias bod='dir=$(\ls ~/batcave | fzf) && [ -n "$dir" ] && cd ~/batcave/"$dir" && nvim .'
+# [B]atcave [O]pen [F]ile
+alias bof='file=$(rg --files ~/batcave | fzf --preview "batcat --color=always {}" --preview-window "~3" ) && [ -n "$file" ] && nvim "$file"'
+# [T]mux [O]pen
+alias to='tmux attach-session -t $(tmux ls | fzf | cut -d ':' -f 1)'
+
 # Path
 export PATH="$PATH:/usr/local/go/bin"
 
