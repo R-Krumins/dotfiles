@@ -69,12 +69,11 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 #zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 
 # Aliases
-alias ls='ls --color'
+alias ls='lsd'
+alias tree='lsd --tree'
 alias n='nvim'
-# [C]hange dir [B]atcave
-alias cb='cd ~/batcave'
 # [B]atcave [O]pen [D]irectory
-alias bod='dir=$(\ls ~/batcave | fzf) && [ -n "$dir" ] && cd ~/batcave/"$dir" && nvim .'
+alias bod='dir=$(\ls ~/batcave | fzf) && [ -n "$dir" ] && \cd ~/batcave/"$dir" && nvim .'
 # [B]atcave [O]pen [F]ile
 alias bof='file=$(rg --files ~/batcave | fzf --preview "batcat --color=always {}" --preview-window "~3" ) && [ -n "$file" ] && nvim "$file"'
 # [T]mux [O]pen
@@ -83,5 +82,8 @@ alias to='tmux attach-session -t $(tmux ls | fzf | cut -d ':' -f 1)'
 # Path
 export PATH="$PATH:/usr/local/go/bin"
 
+# Set up fzf key bindings and fuzzy completion
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+# Set up zoxide
+eval "$(zoxide init --cmd cd zsh)"

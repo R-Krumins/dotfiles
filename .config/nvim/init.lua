@@ -77,7 +77,7 @@ vim.opt.scrolloff = 10
 --  See `:help vim.keymap.set()`
 
 -- My keymaps
-vim.keymap.set('n', '<leader>df', '<cmd>Ex<CR>')
+vim.keymap.set('n', '<leader>d', '<cmd>Ex<CR>')
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
@@ -198,7 +198,7 @@ require('lazy').setup({
   -- after the plugin has been loaded:
   --  config = function() ... end
 
-  { -- Useful plugin to show you pending keybinds.
+  --[[ { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     config = function() -- This is the function that runs, AFTER loading
@@ -219,8 +219,9 @@ require('lazy').setup({
         ['<leader>h'] = { 'Git [H]unk' },
       }, { mode = 'v' })
     end,
-  },
-  { -- Harpoon2
+  }, ]]--
+  -- Harpoon 2
+  {
     'ThePrimeagen/harpoon',
     branch = 'harpoon2',
     dependencies = { 'nvim-lua/plenary.nvim' },
