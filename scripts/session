@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+if [[ $# -eq 1 ]]; then
+    selected=$1
+else
+    selected=$(find ~/batcave -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | fzf)
+fi
+
+# Abort if nothing is selected
+if [[ -z $selected ]]; then
+    exit 0
+fi
+
+selected_path="/home/friko/batcave/$selected"
+tmux_running=$(pgrep tmux)
+
+# If tmux is not running, create new sessinos and attach
+if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+    tmux new-session -s $selected -c $selected_path
+    exit 0
+fi
+
+# If tmux is running, check if session of selected project already exists
+if ! tmux has-session -t=$selected 2> /dev/null; then
+	# create new session in the background (-d flag) 
+	tmux new-session -ds $selected -c $selected_path
+
+    tmux rename-window -t "$selected:1" nvim
+    tmux send-keys -t "$selected:1" 'nvim .' C-m
+
+fi
+
+#check if a tmux session is alrady open
+if [[ -z $TMUX ]]; then
+	#open tmux
+    tmux attach -t $selected
+else
+	#switch between sessions
+    tmux switch-client -t $selected
+fi

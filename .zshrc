@@ -45,8 +45,13 @@ zinit light zsh-users/zsh-autosuggestions
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Keybindings
-bindkey -e '^f' autosuggest-accept
+bindkey -e '^y' autosuggest-accept
 bindkey '^p' history-search-backward
+bindkey -s ^f "session\n"
+
+openNvim() { nvim . }
+zle -N openNvim
+bindkey '^n' openNvim
 
 # History
 HISTSIZE=5000
@@ -81,9 +86,11 @@ alias to='tmux attach-session -t $(tmux ls | fzf | cut -d ':' -f 1)'
 
 # Path
 export PATH="$PATH:/usr/local/go/bin"
+export PATH="$PATH:/home/friko/scripts"
 
 # Set up fzf key bindings and fuzzy completion
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # Set up zoxide
 eval "$(zoxide init --cmd cd zsh)"
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
