@@ -47,7 +47,7 @@ zinit light zsh-users/zsh-autosuggestions
 # Keybindings
 bindkey -e '^y' autosuggest-accept
 bindkey '^p' history-search-backward
-bindkey -s ^f "session\n"
+bindkey -s ^f "tmux-sessionizer\n"
 
 openNvim() { nvim . }
 zle -N openNvim
