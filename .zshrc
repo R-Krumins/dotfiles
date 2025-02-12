@@ -85,8 +85,9 @@ alias bof='file=$(rg --files ~/batcave | fzf --preview "batcat --color=always {}
 alias to='tmux attach-session -t $(tmux ls | fzf | cut -d ':' -f 1)'
 
 # Path
-export PATH="$PATH:/usr/local/go/bin"
 export PATH="$PATH:/home/friko/scripts"
+
+# Variables
 
 # Set up fzf key bindings and fuzzy completion
 

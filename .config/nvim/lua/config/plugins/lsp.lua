@@ -13,7 +13,7 @@ return {
 			require("mason").setup()
 			require("mason-lspconfig").setup {
 				-- must have lsps
-				ensure_installed = { "lua_ls", "clangd" },
+				ensure_installed = { "lua_ls", },
 			}
 
 			-- SETUP LSPS INSTALLED VIA MASON
