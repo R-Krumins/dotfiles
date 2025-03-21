@@ -87,11 +87,9 @@ alias to='tmux attach-session -t $(tmux ls | fzf | cut -d ':' -f 1)'
 # Path
 export PATH="$PATH:/home/friko/scripts"
 
-# Variables
+# tmux in ghostty doesnt display nerd font icons without this
+export LANG=en_US.UTF-8
 
-# Set up fzf key bindings and fuzzy completion
-
-# Set up zoxide
+# Shell integrations
 eval "$(zoxide init --cmd cd zsh)"
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+eval "$(fzf --zsh)"

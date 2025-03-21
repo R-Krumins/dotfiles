@@ -1,5 +1,5 @@
-require("config.options")
-require("config.lazy")
+require("custom.options")
+require("custom.lazy")
 
 vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { desc = 'Yank to system clipbaord' })
 vim.api.nvim_create_autocmd('TextYankPost', {
