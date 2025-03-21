@@ -14,6 +14,9 @@ fi
 selected_path="/home/friko/batcave/$selected"
 tmux_running=$(pgrep tmux)
 
+# tmux doesn't like periods, so replace them with underscore
+selected=$(echo "$selected" | tr '.' '_')
+
 # If tmux is not running, create new sessinos and attach
 if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
     tmux new-session -s $selected -c $selected_path
@@ -26,7 +29,7 @@ if ! tmux has-session -t=$selected 2> /dev/null; then
 	tmux new-session -ds $selected -c $selected_path
 
     tmux rename-window -t "$selected:1" nvim
-    tmux send-keys -t "$selected:1" 'nvim .' C-m
+	#tmux send-keys -t "$selected:1" 'nvim .' C-m
 
 fi
 
