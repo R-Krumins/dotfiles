@@ -90,6 +90,11 @@ export PATH="$PATH:/home/friko/scripts"
 # tmux in ghostty doesnt display nerd font icons without this
 export LANG=en_US.UTF-8
 
+# add go bins if the dir exists on machine
+if [ -d "$HOME/go/bin" ]; then
+    export PATH="$HOME/go/bin:$PATH"
+fi
+
 # Shell integrations
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
