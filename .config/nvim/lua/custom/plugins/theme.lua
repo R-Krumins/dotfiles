@@ -18,6 +18,14 @@ return {
 	{
 		"ellisonleao/gruvbox.nvim",
 		priority = 1000 ,
-		config = true
+		config = function ()
+			require("gruvbox").setup({
+				overrides = {
+					SignColumn = {bg = "none"}
+				},
+				dim_inactive = false,
+				transparent_mode = false,
+			})
+		end
 	}
 }
