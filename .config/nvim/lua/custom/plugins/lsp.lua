@@ -52,8 +52,7 @@ return {
 
 		opts = {
 			keymap = {
-				preset = 'default',
-				['<Tab>'] = { 'accept' },
+				preset = 'super-tab',
 			},
 
 			appearance = {
