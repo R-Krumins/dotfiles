@@ -23,3 +23,8 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 
 -- Default color scheme
 vim.cmd.colorscheme "gruvbox"
+
+-- Inline diognostics
+vim.diagnostic.config({
+	virtual_text = true
+})

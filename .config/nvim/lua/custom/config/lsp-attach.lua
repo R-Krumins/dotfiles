@@ -57,15 +57,6 @@ M.callback = function(event)
 			vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
 		end, '[T]oggle Inlay [H]ints')
 	end
-
-	-- Autoformat on save
-	-- if vim.bo.filetype == "cpp" then
-	-- 	vim.api.nvim_create_autocmd("BufWritePre", {
-	-- 		callback = function()
-	-- 			vim.lsp.buf.format({ bufnr = event.buf })
-	-- 		end
-	-- 	})
-	-- end
 end
 
 return M
