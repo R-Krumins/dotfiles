@@ -1,0 +1,50 @@
+#!/bin/bash
+
+MOUNT="/mnt/hd"
+MEDIA="$MOUNT/media"
+
+# Helper to get folder size in GB (integer GB)
+get_size_gb() {
+    du -sBG "$1" 2>/dev/null | awk '{print $1}'
+}
+
+# Get sizes for subfolders
+movies=$(get_size_gb "$MEDIA/movies")
+tv=$(get_size_gb "$MEDIA/tv")
+anime=$(get_size_gb "$MEDIA/anime")
+
+# Strip the trailing G for math
+movies_num=${movies%G}
+tv_num=${tv%G}
+anime_num=${anime%G}
+
+# Total media = movies + tv + anime
+media_num=$(( movies_num + tv_num + anime_num ))
+media="${media_num}G"
+
+# Get overall disk info
+df_output=$(df -BG --output=used,avail,pcent,target "$MOUNT" | tail -1)
+used=$(echo $df_output | awk '{print $1}')
+avail=$(echo $df_output | awk '{print $2}')
+percent=$(echo $df_output | awk '{print $3}')
+
+# Numeric used (strip G)
+used_num=${used%G}
+
+# Other = total used - media
+other_num=$(( used_num - media_num ))
+other="${other_num}G"
+
+# Print output
+echo "Disk usage for $MOUNT:"
+echo "----------------------------------"
+printf "Media:     %6s\n" "$media"
+printf "Other:     %6s\n" "$other"
+printf "Available: %6s\n" "$avail"
+printf "Usage:     %6s\n" "$percent"
+echo
+echo "Breakdown of $MEDIA:"
+echo "----------------------------------"
+printf "Movies:    %6s\n" "$movies"
+printf "TV:        %6s\n" "$tv"
+printf "Anime:     %6s\n" "$anime"

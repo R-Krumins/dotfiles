@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Set up temporary Rust project directory
+RUSTPAD_DIR="/tmp/rustpad"
+MAIN_RS="$RUSTPAD_DIR/main.rs"
+
+# Create directory and main.rs if they don't exist
+if [ ! -d "$RUSTPAD_DIR" ]; then
+    mkdir "$RUSTPAD_DIR"
+    echo 'fn main() {}' > "$MAIN_RS"
+fi
+
+# Start a new tmux session named rustpad
+tmux new-session -d -s rustpad
+
+# In the first (left) pane, run entr + rustc
+tmux send-keys -t rustpad "cd $RUSTPAD_DIR" C-m
+tmux send-keys -t rustpad "find main.rs | entr -sh -c 'clear && rustc main.rs && ./main'" C-m
+
+# Split window vertically and open nvim in the right pane
+tmux split-window -h -t rustpad
+tmux send-keys -t rustpad:0.1 "cd $RUSTPAD_DIR && nvim main.rs" C-m
+
+# Attach to the tmux session
+tmux attach -t rustpad
+
