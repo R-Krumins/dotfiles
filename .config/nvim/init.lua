@@ -22,9 +22,14 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 })
 
 -- Default color scheme
-vim.cmd.colorscheme "tokyonight"
+vim.cmd.colorscheme "gruber-darker"
 
 -- Inline diognostics
 vim.diagnostic.config({
 	virtual_text = true
 })
+
+-- TODO: Create a file for remaps
+vim.keymap.set('n', '<C-d>', '<C-d>zz', { noremap = true, silent = true })
+vim.keymap.set('n', '<C-u>', '<C-u>zz', { noremap = true, silent = true })
+

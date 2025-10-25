@@ -27,5 +27,6 @@ return {
 				transparent_mode = false,
 			})
 		end
-	}
+	},
+	{ "blazkowolf/gruber-darker.nvim" }
 }
