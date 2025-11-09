@@ -1,12 +1,57 @@
+local function theme()
+	local colors = {
+		darkgray = "#16161d",
+		gray = "#727169",
+		bg = "None",
+		normal = "#7e9cd8",
+		insert = "#98bb6c",
+		visual = "#ffa066",
+		replace = "#e46876",
+		command = "#e6c384",
+	}
+
+	local line = { fg = colors.gray, bg = colors.bg }
+
+	return {
+		inactive = {
+			a = { fg = colors.gray, bg = colors.bg, gui = "bold" },
+			b = line,
+			c = line
+		},
+		visual = {
+			a = { fg = colors.visual, bg = colors.bg, gui = "bold" },
+			b = line,
+			c = line
+		},
+		replace = {
+			a = { fg = colors.replace, bg = colors.bg, gui = "bold" },
+			b = line,
+			c = line
+		},
+		normal = {
+			a = { fg = colors.normal, bg = colors.bg, gui = "bold" },
+			b = line,
+			c = line
+		},
+		insert = {
+			a = { fg = colors.insert, bg = colors.bg, gui = "bold" },
+			b = line,
+			c = line
+		},
+		command = {
+			a = { fg = colors.command, bg = colors.bg, gui = "bold" },
+			b = line,
+			c = line
+		},
+	}
+end
+
 return {
     'nvim-lualine/lualine.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
 		local icon = require("custom.icons")
 		local lualine = require("lualine")
-		local theme = require("custom.theme")
-
-		local filetype = { "filetype", icon_only = true }
 
 		local lsp_status = {
 			"lsp_status",
@@ -58,7 +103,7 @@ return {
 
 		lualine.setup({
 			options = {
-				theme = theme.theme(),
+				theme = theme(),
 				globalstatus = true,
 				section_separators = "",
 				component_separators = "",
@@ -68,10 +113,11 @@ return {
 				lualine_a = { "mode" },
 				lualine_b = {},
 				lualine_c = { "filename", lsp_status },
-				lualine_x = { diff, diagnostics, filetype },
+				lualine_x = { diff, diagnostics},
 				lualine_y = {},
 				lualine_z = {},
 			},
+			tabline = {},
 		})
     end,
 }

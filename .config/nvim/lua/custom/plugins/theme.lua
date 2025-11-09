@@ -31,6 +31,7 @@ return {
 	},
 	{
 		"rebelot/kanagawa.nvim",
+		priority = 1000,
 		config = function()
 			require("kanagawa").setup({
 				transparent = true,
@@ -42,7 +43,12 @@ return {
 							}
 						}
 					}
-				}
+				},
+				overrides = function(colors)
+					return {
+						StatusLine = {bg = "none"}
+					}
+				end,
 			})
 		end,
 	},
