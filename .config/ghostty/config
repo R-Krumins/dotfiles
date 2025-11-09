@@ -1,9 +1,10 @@
 #background-opacity = 0.7
 #background-blur = true
-background = #000000
+#background = #000000
+theme = Kanagawa Dragon
 gtk-titlebar-hide-when-maximized = true
 
-window-padding-balance = true
-window-padding-x = 0
-window-padding-y = 0
+# window-padding-balance = true
+window-padding-x = 4
+# window-padding-y = 0
 window-padding-color = extend

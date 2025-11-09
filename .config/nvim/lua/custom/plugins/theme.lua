@@ -1,4 +1,5 @@
 return {
+	{ "blazkowolf/gruber-darker.nvim" },
 	{
 		"folke/tokyonight.nvim",
 		lazy = false,
@@ -28,5 +29,20 @@ return {
 			})
 		end
 	},
-	{ "blazkowolf/gruber-darker.nvim" }
+	{
+		"rebelot/kanagawa.nvim",
+		config = function()
+			require("kanagawa").setup({
+				colors = {
+					theme = {
+						all = {
+							ui = {
+								bg_gutter = "none"
+							}
+						}
+					}
+				}
+			})
+		end,
+	},
 }

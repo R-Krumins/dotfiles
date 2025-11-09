@@ -60,7 +60,7 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 #zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 
 # Aliases
-alias ls='lsd'
+alias ls='lsd --icon never'
 alias tree='lsd --tree'
 alias n='nvim'
 # [B]atcave [O]pen [D]irectory
