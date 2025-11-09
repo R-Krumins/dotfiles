@@ -11,22 +11,18 @@ return {
 		config = function()
 			-- MASON SETUP
 			require("mason").setup()
-			require("mason-lspconfig").setup {
-				-- must have lsps
-				ensure_installed = { "lua_ls", },
-			}
-
-			-- SETUP LSPS INSTALLED VIA MASON
-			local capabilities = require('blink.cmp').get_lsp_capabilities()
-			require("mason-lspconfig").setup_handlers {
-				function (server_name)
-					require("lspconfig")[server_name].setup { capabilities = capabilities }
-				end,
-			}
-
 			vim.api.nvim_create_autocmd('LspAttach', require("custom.config.lsp-attach"))
-
 		end,
+	},
+
+	-- AUTOMATICLY SETUP MASON LSPS WITH LSPCONFIG
+	{
+		"mason-org/mason-lspconfig.nvim",
+		opts = {},
+		dependencies = {
+			{ "mason-org/mason.nvim", opts = {} },
+			"neovim/nvim-lspconfig",
+		},
 	},
 
 	-- NEOVIM API INFO FOR LUA LSP

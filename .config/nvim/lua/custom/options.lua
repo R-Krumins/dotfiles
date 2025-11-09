@@ -18,7 +18,7 @@ vim.g.have_nerd_font = true
 vim.opt.undofile = true
 
 -- Show which line your cursor is on
-vim.opt.cursorline = true
+vim.opt.cursorline = false
 
 -- Keep signcolumn on by default
 vim.opt.signcolumn = 'yes'
