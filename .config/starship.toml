@@ -9,7 +9,8 @@ $git_status\
 $git_metrics\
 $docker_context\
 $container\
-$python
+$python\
+$cmd_duration
 $character"""
 
 [git_metrics]

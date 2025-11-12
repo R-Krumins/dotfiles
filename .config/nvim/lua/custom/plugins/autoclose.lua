@@ -1,9 +1,8 @@
-return {
-	{
-		"m4xshen/autoclose.nvim",
-		enabled = false,
-		config = function()
-			require("autoclose").setup()
-		end,
-	}
-}
+local autoclose = {	"m4xshen/autoclose.nvim" }
+autoclose.enabled = true
+
+autoclose.config= function ()
+	require("autoclose").setup({})
+end
+
+return autoclose
