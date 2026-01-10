@@ -1,9 +1,9 @@
-background-opacity = 0.9
-background-blur = true 
+#background-opacity = 0.9
+#background-blur = true 
 #background = #000000
 theme = Kanagawa Dragon
-#gtk-titlebar-hide-when-maximized = true
-window-decoration = none
+gtk-titlebar-hide-when-maximized = true
+#window-decoration = none
 
 # window-padding-balance = true
 window-padding-x = 4
