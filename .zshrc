@@ -69,6 +69,8 @@ alias bod='dir=$(\ls ~/batcave | fzf) && [ -n "$dir" ] && \cd ~/batcave/"$dir" &
 alias bof='file=$(rg --files ~/batcave | fzf --preview "batcat --color=always {}" --preview-window "~3" ) && [ -n "$file" ] && nvim "$file"'
 # [T]mux [O]pen
 alias to='tmux attach-session -t $(tmux ls | fzf | cut -d ':' -f 1)'
+# VLC
+alias vlc=org.videolan.VLC
 
 # Path
 export PATH="$PATH:/home/friko/scripts"
