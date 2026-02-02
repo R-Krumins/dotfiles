@@ -30,3 +30,4 @@ error_symbol = '[⋗](bold red)'
 
 [directory]
 style = 'cyan'
+truncation_length = 16
