@@ -11,21 +11,21 @@ oil.config = function()
 				return name == ".."
 			end,
 		},
-		float = {
-			max_width = 0.5,
-			max_height = 0.5,
-		}
+		-- float = {
+		-- 	max_width = 0.5,
+		-- 	max_height = 0.5,
+		-- }
 	})
 
 	-- KEYMAPS
-	vim.keymap.set("n", "-", "<cmd>Oil --float<CR>", { desc = "Open Current Directory" })
+	vim.keymap.set("n", "-", "<cmd>Oil<CR>", { desc = "Open Current Directory" })
 	-- Close Oil floating window with Esc
-	vim.api.nvim_create_autocmd("FileType", {
-		pattern = "oil",
-		callback = function()
-			vim.keymap.set("n", "<Esc>", "<cmd>close<CR>", { buffer = true, desc = "Close Oil Float" })
-		end,
-	})
+	-- vim.api.nvim_create_autocmd("FileType", {
+	-- 	pattern = "oil",
+	-- 	callback = function()
+	-- 		vim.keymap.set("n", "<Esc>", "<cmd>close<CR>", { buffer = true, desc = "Close Oil Float" })
+	-- 	end,
+	-- })
 end
 
 return oil
