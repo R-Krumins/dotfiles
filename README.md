@@ -13,6 +13,7 @@ create a setup script
 - zoxide
 - lsd
 - starship
+- delta
 
 ## Setup tmux
 
