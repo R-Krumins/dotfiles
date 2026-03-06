@@ -68,7 +68,7 @@ alias gs='git status -s'
 alias gd='git diff'
 
 # Path
-export PATH="$PATH:/home/friko/scripts"
+export PATH="$PATH:$HOME/scripts"
 
 # golang
 if [ -d "$HOME/go/bin" ]; then
