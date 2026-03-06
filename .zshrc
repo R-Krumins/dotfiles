@@ -63,25 +63,28 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 alias ls='lsd --icon never'
 alias tree='lsd --tree'
 alias n='nvim'
-# [B]atcave [O]pen [D]irectory
-alias bod='dir=$(\ls ~/batcave | fzf) && [ -n "$dir" ] && \cd ~/batcave/"$dir" && nvim .'
-# [B]atcave [O]pen [F]ile
-alias bof='file=$(rg --files ~/batcave | fzf --preview "batcat --color=always {}" --preview-window "~3" ) && [ -n "$file" ] && nvim "$file"'
-# [T]mux [O]pen
-alias to='tmux attach-session -t $(tmux ls | fzf | cut -d ':' -f 1)'
-# VLC
-alias vlc=org.videolan.VLC
+alias open=xdg-open
+alias gs='git status -s'
+alias gd='git diff'
 
 # Path
 export PATH="$PATH:/home/friko/scripts"
 
-# tmux in ghostty doesnt display nerd font icons without this
-export LANG=en_US.UTF-8
-
-# add go bins if the dir exists on machine
+# golang
 if [ -d "$HOME/go/bin" ]; then
     export PATH="$HOME/go/bin:$PATH"
 fi
+
+# bun
+if [ -d "$HOME/.bun" ]; then
+	[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+	export BUN_INSTALL="$HOME/.bun"
+	export PATH="$BUN_INSTALL/bin:$PATH"
+fi
+
+
+# tmux in ghostty doesnt display nerd font icons without this
+export LANG=en_US.UTF-8
 
 # Shell integrations
 eval "$(zoxide init --cmd cd zsh)"
