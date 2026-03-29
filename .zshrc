@@ -35,9 +35,15 @@ bindkey -e '^y' autosuggest-accept
 bindkey '^p' history-search-backward
 bindkey -s ^f "tmux-sessionizer\n"
 
+# Open noevim
 openNvim() { nvim . }
 zle -N openNvim
 bindkey '^n' openNvim
+
+# Open buffer line in editor
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^xb' edit-command-line
 
 # History
 HISTSIZE=5000
@@ -90,3 +96,6 @@ export LANG=en_US.UTF-8
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
 eval "$(starship init zsh)"
+
+# opencode
+export PATH=/home/friko/.opencode/bin:$PATH
