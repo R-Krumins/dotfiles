@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Usage: ./move_into_subdir.sh <subdir_name>
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: $0 <subdir_name>"
+  exit 1
+fi
+
+SUBDIR="$1"
+
+# Create target directory if it doesn't exist
+mkdir -p -- "$SUBDIR"
+
+# Enable dotfiles and avoid '.' and '..'
+shopt -s dotglob nullglob
+
+# Move everything except the target directory itself
+for item in *; do
+  [[ "$item" == "$SUBDIR" ]] && continue
+  mv -- "$item" "$SUBDIR"/
+done

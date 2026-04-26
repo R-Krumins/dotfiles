@@ -1,7 +1,8 @@
 #background-opacity = 0.9
 #background-blur = true 
 #background = #000000
-theme = Kanagawa Dragon
+#theme = Kanagawa Dragon
+theme = TokyoNight Night 
 gtk-titlebar-hide-when-maximized = true
 #window-decoration = none
 

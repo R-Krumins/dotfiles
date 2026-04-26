@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="${HOME}/batcave"
+
+if [[ ! -d "$ROOT" ]]; then
+  echo "Error: root directory not found: $ROOT" >&2
+  exit 1
+fi
+
+tmpfile="$(mktemp)"
+trap 'rm -f "$tmpfile"' EXIT
+
+shopt -s nullglob
+
+found_any=0
+
+for proj_dir in "$ROOT"/*; do
+  [[ -d "$proj_dir" ]] || continue
+
+  cargo_toml="$proj_dir/Cargo.toml"
+  target_dir="$proj_dir/target"
+
+  [[ -f "$cargo_toml" ]] || continue
+  found_any=1
+
+  size_gib="0.00"
+  if [[ -d "$target_dir" ]]; then
+    # GNU du (Linux) path
+    if du -s --block-size=1G "$target_dir" &>/dev/null; then
+      size_gib="$(du -s --block-size=1G "$target_dir" | awk '{printf "%.2f", $1}')"
+    else
+      # macOS fallback (KiB -> GiB)
+      size_gib="$(du -sk "$target_dir" | awk '{printf "%.2f", $1/1024/1024}')"
+    fi
+  fi
+
+  proj_name="$(basename "$proj_dir")"
+  printf "%s\t%s\t%s\t%s\n" "$size_gib" "$proj_name" "$proj_dir" "$target_dir" >> "$tmpfile"
+done
+
+if [[ "$found_any" -eq 0 ]]; then
+  echo "No Rust projects found under: $ROOT"
+  exit 0
+fi
+
+# Sort descending by GiB
+sorted_file="$(mktemp)"
+trap 'rm -f "$tmpfile" "$sorted_file"' EXIT
+sort -t $'\t' -k1,1nr "$tmpfile" > "$sorted_file"
+
+echo
+echo "Rust projects under: $ROOT"
+echo "Sorted by target/ size (GiB), descending"
+echo "------------------------------------------------------------"
+printf "%-10s  %-30s  %s\n" "GiB" "PROJECT" "TARGET_DIR"
+echo "------------------------------------------------------------"
+
+while IFS=$'\t' read -r size_gib proj_name proj_dir target_dir; do
+  printf "%-10s  %-30s  %s\n" "$size_gib" "$proj_name" "$target_dir"
+done < "$sorted_file"
+
+echo "------------------------------------------------------------"
+echo
+
+# Prompt per project (READ ANSWER FROM /dev/tty so it is always interactive)
+while IFS=$'\t' read -r size_gib proj_name proj_dir target_dir; do
+  if [[ ! -d "$target_dir" ]]; then
+    echo "[$proj_name] target/ not found — skipping."
+    continue
+  fi
+
+  ans=""
+  printf "Delete target/ for '%s' (%s GiB)? [Y/n] " "$proj_name" "$size_gib" > /dev/tty
+  IFS= read -r ans < /dev/tty || ans=""
+
+  ans="${ans:-Y}"
+  if [[ "$ans" =~ ^[Nn]$ ]]; then
+    echo "  -> Kept: $target_dir"
+    continue
+  fi
+
+  # Safety check: only delete if exactly "<proj_dir>/target"
+  if [[ "$target_dir" != "$proj_dir/target" ]]; then
+    echo "  -> Safety check failed; refusing to delete: $target_dir" >&2
+    continue
+  fi
+
+  rm -rf -- "$target_dir"
+  echo "  -> Deleted: $target_dir"
+done < "$sorted_file"
+
+echo
+echo "Done."
+

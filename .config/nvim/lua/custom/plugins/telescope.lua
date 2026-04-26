@@ -1,7 +1,6 @@
 return {
 	{
 		'nvim-telescope/telescope.nvim',
-		tag = '0.1.8',
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			{
@@ -11,9 +10,23 @@ return {
 		},
 		config = function()
 			require("telescope").setup {
-				extensions =  {
+				defaults = {
+					file_ignore_patterns = {
+						"node_modules/",
+						".git/",
+						"dist/",
+						"target/",
+						"build/",
+					},
+				},
+				extensions = {
 					fzf = {}
 				},
+				pickers = {
+					find_files = {
+						hidden = true,
+					}
+				}
 			}
 
 			require("telescope").load_extension("fzf")

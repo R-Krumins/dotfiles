@@ -56,9 +56,19 @@ return {
 				nerd_font_variant = 'mono'
 			},
 
-			sources = {
-				default = { 'lsp', 'path', 'snippets', 'buffer' },
+		sources = {
+			default = { 'lsp', 'path', 'snippets', 'buffer' },
+			providers = {
+				snippets = {
+					opts = {
+						extended_filetypes = {
+							typescriptreact = { 'javascriptreact', 'html' },
+							javascriptreact = { 'html' },
+						},
+					},
+				},
 			},
+		},
 		},
 
 		opts_extend = { "sources.default" }

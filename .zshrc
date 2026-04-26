@@ -73,6 +73,9 @@ alias open=xdg-open
 alias gs='git status -s'
 alias gd='git diff'
 
+# Default Editor
+export EDITOR="nvim"
+
 # Path
 export PATH="$PATH:$HOME/scripts"
 
