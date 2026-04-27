@@ -66,7 +66,7 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 #zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 
 # Aliases
-alias ls='lsd --icon never'
+alias ls='lsd --icon never --group-directories-first -A'
 alias tree='lsd --tree'
 alias n='nvim'
 alias open=xdg-open
@@ -101,4 +101,19 @@ eval "$(fzf --zsh)"
 eval "$(starship init zsh)"
 
 # opencode
-export PATH=/home/friko/.opencode/bin:$PATH
+export PATH=/$HOME/.opencode/bin:$PATH
+
+# Inskaku
+alias insaku="docker run \
+	--cap-add SYS_ADMIN \
+	--add-host=insaku:host-gateway \
+	--add-host=finsaku:host-gateway \
+	-v /home/rainers/work/Insaku:/builds/finserio/Insaku \
+	-v /home/rainers/work/finto:/builds/finto-dev/finto \
+	-v /var/run/docker.sock:/var/run/docker.sock \
+	-it registry.gitlab.com/finserio/insaku/insaku-cli:latest bash"
+alias i4u=insaku
+
+# export NVM_DIR="$HOME/.config/nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+interactive=false
+search_query=""
+
+while getopts ':is:' opt; do
+  case "$opt" in
+    i)
+      interactive=true
+      ;;
+    s)
+      search_query=$OPTARG
+      ;;
+    *)
+      printf 'Usage: %s [-i] [-s query]\n' "$0" >&2
+      exit 1
+      ;;
+  esac
+done
+
+shift $((OPTIND - 1))
+
+if (($# > 0)); then
+  printf 'Usage: %s [-i] [-s query]\n' "$0" >&2
+  exit 1
+fi
+
+if [[ "$interactive" == true || -n "$search_query" ]] && ! command -v fzf >/dev/null 2>&1; then
+  printf 'Error: fzf is not installed or not in PATH.\n' >&2
+  exit 1
+fi
+
+report_files=()
+
+if command -v rg >/dev/null 2>&1; then
+  mapfile -d '' report_files < <(rg --files -0 -uu -g '**/target/surefire-reports/*.txt')
+else
+  mapfile -d '' report_files < <(find . -type f -path '*/target/surefire-reports/*.txt' -print0)
+fi
+
+if ((${#report_files[@]} == 0)); then
+  printf 'No surefire report txt files found under */target/surefire-reports/.\n' >&2
+  exit 1
+fi
+
+entries=()
+root_name=${PWD##*/}
+
+for report in "${report_files[@]}"; do
+  parsed=$(awk '
+    BEGIN {
+      test_set = ""
+      failures = 0
+      errors = 0
+    }
+    /^Test set:[[:space:]]*/ && test_set == "" {
+      test_set = $0
+      sub(/^Test set:[[:space:]]*/, "", test_set)
+    }
+    /^Tests run:/ {
+      if (match($0, /Failures: [0-9]+/)) {
+        failures = substr($0, RSTART + 10, RLENGTH - 10) + 0
+      }
+      if (match($0, /Errors: [0-9]+/)) {
+        errors = substr($0, RSTART + 8, RLENGTH - 8) + 0
+      }
+      print test_set "\t" (failures + errors)
+      exit
+    }
+  ' "$report")
+
+  if [[ -z "$parsed" ]]; then
+    continue
+  fi
+
+  test_set=${parsed%%$'\t'*}
+  fail_count=${parsed##*$'\t'}
+
+  if ((fail_count > 0)); then
+    if [[ -z "$test_set" ]]; then
+      test_set=${report##*/}
+      test_set=${test_set%.txt}
+    fi
+
+    module_path=${report%target/surefire-reports/*}
+    module_path=${module_path%/}
+    module_name=${module_path##*/}
+    if [[ -z "$module_name" || "$module_name" == "." ]]; then
+      module_name=$root_name
+    fi
+
+    entries+=("$fail_count\t$module_name\t$test_set\t$report")
+  fi
+done
+
+if ((${#entries[@]} == 0)); then
+  printf 'No failing surefire reports found.\n' >&2
+  exit 0
+fi
+
+sorted_entries=$(printf '%b\n' "${entries[@]}" | sort -t $'\t' -k1,1nr -k2,2 -k3,3)
+
+if [[ "$interactive" == false && -z "$search_query" ]]; then
+  if command -v column >/dev/null 2>&1; then
+    {
+      printf 'count\tmodule\ttest\n'
+      printf '%s\n' "$sorted_entries" | cut -f1-3
+    } | column -t -s $'\t'
+  else
+    printf 'count\tmodule\ttest\n'
+    printf '%s\n' "$sorted_entries" | cut -f1-3
+  fi
+  exit 0
+fi
+
+fzf_args=(
+  --delimiter=$'\t'
+  --with-nth=1,2,3
+  --nth=3
+  --prompt='Failing tests > '
+  --header=$'count\tmodule\ttest'
+  --height=80%
+  --layout=reverse
+)
+
+if [[ "$interactive" == false ]]; then
+  fzf_args+=(--filter="$search_query" --select-1 --exit-0)
+elif [[ -n "$search_query" ]]; then
+  fzf_args+=(--query="$search_query")
+fi
+
+selected=$(printf '%s\n' "$sorted_entries" | fzf "${fzf_args[@]}")
+
+if [[ -z "${selected:-}" ]]; then
+  if [[ -n "$search_query" ]]; then
+    printf 'No failing test matched query: %s\n' "$search_query" >&2
+    exit 1
+  fi
+  exit 0
+fi
+
+selected_tail=${selected#*$'\t'}
+selected_tail=${selected_tail#*$'\t'}
+selected_test=${selected_tail%%$'\t'*}
+selected_report=${selected##*$'\t'}
+
+printf 'Selected test: %s\n' "$selected_test"
+
+printf 'Selected report: %s\n\n' "$selected_report"
+cat "$selected_report"
