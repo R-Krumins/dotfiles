@@ -112,8 +112,8 @@ return {
 			sections = {
 				lualine_a = { "mode" },
 				lualine_b = {},
-				lualine_c = { {"filename", path = 1 }, lsp_status },
-				lualine_x = { diff, diagnostics},
+				lualine_c = { {"filename", path = 1 }, "branch" },
+				lualine_x = { lsp_status, diff, diagnostics },
 				lualine_y = {},
 				lualine_z = {},
 			},
