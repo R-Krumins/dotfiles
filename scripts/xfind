@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+query="${*:-}"
+
+if [[ -z "$query" ]]; then
+  read -rp "Search term: " query
+fi
+
+rg --fixed-strings --line-number --no-heading --color=always "$query" |
+  cut -d ':' -f 1-2 |
+  fzf --ansi \
+    --delimiter ':' \
+    --preview 'bash -c '"'"'
+      file="$1"
+      line="$2"
+
+      if command -v batcat >/dev/null; then
+        batcat --style=numbers --color=always --highlight-line "$line" "$file"
+      else
+        start=$((line - 5))
+        (( start < 1 )) && start=1
+        end=$((line + 5))
+        sed -n "${start},${end}p" "$file"
+      fi
+    '"'"' _ {1} {2}' \
+    --preview-window 'right:60%:wrap' \
+    --bind 'enter:execute(nvim +{2} {1})+abort'
