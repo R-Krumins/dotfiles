@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+POSTGRES_CONTAINER="dumpster"
+POSTGRES_VOLUME="dumpster_postgres_data"
+DUMPSTER_DIR="$(pwd)/.dumpster"
+
+error() {
+  echo -e "\033[0;31m$1\033[0m"
+}
+
+success() {
+  echo -e "\033[0;32m$1\033[0m"
+}
+
+dump() {
+  NAME="${1:-}"
+
+  if [[ -z "$NAME" ]]; then
+    error "Usage: $0 dump <name>"
+    exit 1
+  fi
+
+  mkdir -p "$DUMPSTER_DIR"
+
+  FILE="$DUMPSTER_DIR/${NAME}.tar.gz"
+
+  if [[ -f "$FILE" ]]; then
+    error "Dump already exists: $FILE"
+    exit 1
+  fi
+
+  echo "Stopping container..."
+  docker stop "$POSTGRES_CONTAINER"
+
+  echo "Creating dump: $FILE"
+  docker run --rm \
+    -v "$POSTGRES_VOLUME:/volume" \
+    -v "$DUMPSTER_DIR:/backup" \
+    alpine \
+    tar czf "/backup/${NAME}.tar.gz" -C /volume .
+
+  echo "Starting container..."
+  docker start "$POSTGRES_CONTAINER"
+
+  success "Dump created: $FILE"
+}
+
+list_dumps() {
+  echo "Dumps:"
+
+  shopt -s nullglob
+
+  for file in "$DUMPSTER_DIR"/*.tar.gz; do
+    [[ -e "$file" ]] || continue
+
+    filename="$(basename "$file")"
+    name="${filename%.tar.gz}"
+
+    # Get creation time (fallback to modification time if ctime not available)
+    if stat --version >/dev/null 2>&1; then
+      # GNU stat (Linux)
+      time="$(stat -c '%w' "$file")"
+      if [[ "$time" == "-" ]]; then
+        time="$(stat -c '%y' "$file")"
+      fi
+    else
+      # macOS/BSD stat
+      time="$(stat -f '%SB' "$file")"
+    fi
+
+    printf "%-30s %s\n" "$name" "$time"
+  done
+}
+
+restore() {
+  NAME="${1:-}"
+
+  if [[ -z "$NAME" ]]; then
+    error "Usage: $0 restore <name>"
+    exit 1
+  fi
+
+  FILE="$DUMPSTER_DIR/${NAME}.tar.gz"
+
+  if [[ ! -f "$FILE" ]]; then
+    error "Dump not found: $FILE"
+    exit 1
+  fi
+
+  echo "Stopping container..."
+  docker stop "$POSTGRES_CONTAINER"
+
+  echo "Removing volume..."
+  docker volume rm "$POSTGRES_VOLUME" >/dev/null 2>&1 || true
+
+  echo "Recreating volume..."
+  docker volume create "$POSTGRES_VOLUME" >/dev/null
+
+  echo "Restoring dump..."
+  docker run --rm \
+    -v "$POSTGRES_VOLUME:/volume" \
+    -v "$DUMPSTER_DIR:/backup" \
+    alpine \
+    sh -c "cd /volume && tar xzf /backup/${NAME}.tar.gz"
+
+  echo "Starting container..."
+  docker start "$POSTGRES_CONTAINER"
+
+  success "Restored dump: $FILE"
+}
+
+usage() {
+  echo "Usage:"
+  echo "  $0 dump <name>"
+  echo "  $0 ls"
+  echo "  $0 restore <name>"
+}
+
+case "${1:-}" in
+  dump)
+    dump "${2:-}"
+    ;;
+  ls)
+    list_dumps
+    ;;
+  restore)
+    restore "${2:-}"
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac
