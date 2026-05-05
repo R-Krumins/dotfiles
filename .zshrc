@@ -33,7 +33,7 @@ zinit light zsh-users/zsh-autosuggestions
 # Keybindings
 bindkey -e '^y' autosuggest-accept
 bindkey '^p' history-search-backward
-bindkey -s ^f "tmux-sessionizer\n"
+bindkey -s ^xp "tmux-sessionizer\n"
 
 # Open noevim
 openNvim() { nvim . }
@@ -66,7 +66,7 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 #zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 
 # Aliases
-alias ls='lsd --icon never'
+alias ls='lsd --icon never -A --group-directories-first'
 alias tree='lsd --tree'
 alias n='nvim'
 alias open=xdg-open
