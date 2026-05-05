@@ -17,6 +17,8 @@ return {
 						"dist/",
 						"target/",
 						"build/",
+                        -- svg crash neovim, idk why
+                        "%.svg$"
 					},
 				},
 				extensions = {
