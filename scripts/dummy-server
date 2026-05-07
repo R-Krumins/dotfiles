@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+import argparse
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+class StatusHandler(BaseHTTPRequestHandler):
+    status_code = 200
+
+    def do_ANY(self):
+        self.send_response(self.status_code)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
+        self.wfile.write(f"{self.status_code}\n".encode())
+
+    def do_GET(self): self.do_ANY()
+    def do_POST(self): self.do_ANY()
+    def do_PUT(self): self.do_ANY()
+    def do_PATCH(self): self.do_ANY()
+    def do_DELETE(self): self.do_ANY()
+    def do_HEAD(self):
+        self.send_response(self.status_code)
+        self.end_headers()
+    def do_OPTIONS(self): self.do_ANY()
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Run a lightweight HTTP server that returns one status code for every request."
+    )
+    parser.add_argument("port", type=int, help="Port to listen on")
+    parser.add_argument("status_code", type=int, help="HTTP status code to return")
+    args = parser.parse_args()
+
+    if not 100 <= args.status_code <= 599:
+        raise SystemExit("status_code must be between 100 and 599")
+
+    StatusHandler.status_code = args.status_code
+
+    server = ThreadingHTTPServer(("0.0.0.0", args.port), StatusHandler)
+    print(f"Dummy serving on port {args.port}, returning {args.status_code} for all requests")
+    server.serve_forever()
+
+
+if __name__ == "__main__":
+    main()

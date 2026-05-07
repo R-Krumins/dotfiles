@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+POSTGRES_CONTAINER="postgres"
+POSTGRES_VOLUME="insaku_postgres-data"
+DUMPSTER_DIR="$(pwd)/.dumpster"
+
+error() {
+  echo -e "\033[0;31m$1\033[0m"
+}
+
+success() {
+  echo -e "\033[0;32m$1\033[0m"
+}
+
+dump() {
+  COMPRESS=false
+  NAME=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -c|--compress)
+        COMPRESS=true
+        shift
+        ;;
+      -*)
+        error "Unknown option: $1"
+        echo "Usage: $0 dump [-c|--compress] <name>"
+        exit 1
+        ;;
+      *)
+        if [[ -n "$NAME" ]]; then
+          error "Unexpected argument: $1"
+          echo "Usage: $0 dump [-c|--compress] <name>"
+          exit 1
+        fi
+        NAME="$1"
+        shift
+        ;;
+    esac
+  done
+
+  if [[ -z "$NAME" ]]; then
+    error "Usage: $0 dump [-c|--compress] <name>"
+    exit 1
+  fi
+
+  mkdir -p "$DUMPSTER_DIR"
+
+  if [[ "$COMPRESS" == true ]]; then
+    ARCHIVE_NAME="${NAME}.tar.gz"
+    TAR_FLAGS="czf"
+  else
+    ARCHIVE_NAME="${NAME}.tar"
+    TAR_FLAGS="cf"
+  fi
+
+  FILE="$DUMPSTER_DIR/$ARCHIVE_NAME"
+
+  if [[ -f "$FILE" ]]; then
+    error "Dump already exists: $FILE"
+    exit 1
+  fi
+
+  echo "Stopping container..."
+  docker stop "$POSTGRES_CONTAINER"
+
+  echo "Creating dump: $FILE"
+  docker run --rm \
+    -v "$POSTGRES_VOLUME:/volume" \
+    -v "$DUMPSTER_DIR:/backup" \
+    alpine \
+    tar "$TAR_FLAGS" "/backup/$ARCHIVE_NAME" -C /volume .
+
+  echo "Starting container..."
+  docker start "$POSTGRES_CONTAINER"
+
+  success "Dump created: $FILE"
+}
+
+list_dumps() {
+  echo "Dumps:"
+
+  shopt -s nullglob
+
+  printf "%-30s %-12s %s\n" "Name" "Size GB" "Created/Modified"
+  printf "%-30s %-12s %s\n" "----" "-------" "----------------"
+
+  for file in "$DUMPSTER_DIR"/*.tar "$DUMPSTER_DIR"/*.tar.gz; do
+    [[ -e "$file" ]] || continue
+
+    filename="$(basename "$file")"
+    name="$filename"
+    name="${name%.tar.gz}"
+    name="${name%.tar}"
+
+    if stat --version >/dev/null 2>&1; then
+      # GNU stat (Linux)
+      size_bytes="$(stat -c '%s' "$file")"
+      time="$(stat -c '%w' "$file")"
+      if [[ "$time" == "-" ]]; then
+        time="$(stat -c '%y' "$file")"
+      fi
+    else
+      # macOS/BSD stat
+      size_bytes="$(stat -f '%z' "$file")"
+      time="$(stat -f '%SB' "$file")"
+    fi
+
+    size_gb="$(awk "BEGIN { printf \"%.2f\", $size_bytes / 1024 / 1024 / 1024 }")"
+
+    printf "%-30s %-12s %s\n" "$name" "$size_gb" "$time"
+  done
+}
+
+restore() {
+  NAME="${1:-}"
+
+  if [[ -z "$NAME" ]]; then
+    error "Usage: $0 restore <name>"
+    exit 1
+  fi
+
+  TAR_FILE="$DUMPSTER_DIR/${NAME}.tar"
+  TAR_GZ_FILE="$DUMPSTER_DIR/${NAME}.tar.gz"
+
+  if [[ -f "$TAR_FILE" ]]; then
+    FILE="$TAR_FILE"
+    ARCHIVE_NAME="${NAME}.tar"
+    TAR_FLAGS="xf"
+  elif [[ -f "$TAR_GZ_FILE" ]]; then
+    FILE="$TAR_GZ_FILE"
+    ARCHIVE_NAME="${NAME}.tar.gz"
+    TAR_FLAGS="xzf"
+  else
+    error "Dump not found: $DUMPSTER_DIR/${NAME}.tar or $DUMPSTER_DIR/${NAME}.tar.gz"
+    exit 1
+  fi
+
+  echo "Stopping container..."
+  docker stop "$POSTGRES_CONTAINER"
+
+  echo "Removing volume..."
+  docker volume rm "$POSTGRES_VOLUME" >/dev/null 2>&1 || true
+
+  echo "Recreating volume..."
+  docker volume create "$POSTGRES_VOLUME" >/dev/null
+
+  echo "Restoring dump..."
+  docker run --rm \
+    -v "$POSTGRES_VOLUME:/volume" \
+    -v "$DUMPSTER_DIR:/backup" \
+    alpine \
+    sh -c "cd /volume && tar $TAR_FLAGS /backup/$ARCHIVE_NAME"
+
+  echo "Starting container..."
+  docker start "$POSTGRES_CONTAINER"
+
+  success "Restored dump: $FILE"
+}
+
+usage() {
+  echo "Usage:"
+  echo "  $0 dump [-c|--compress] <name>"
+  echo "  $0 ls"
+  echo "  $0 restore <name>"
+}
+
+case "${1:-}" in
+  dump)
+    shift
+    dump "$@"
+    ;;
+  ls)
+    list_dumps
+    ;;
+  restore)
+    restore "${2:-}"
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac
