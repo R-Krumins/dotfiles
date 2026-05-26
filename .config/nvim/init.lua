@@ -33,3 +33,19 @@ vim.diagnostic.config({
 vim.keymap.set('n', '<C-d>', '<C-d>zz', { noremap = true, silent = true })
 vim.keymap.set('n', '<C-u>', '<C-u>zz', { noremap = true, silent = true })
 
+vim.opt.listchars = {
+  tab = "▸ ",
+  trail = "·",
+  space = "·",
+  eol = "↴",
+}
+
+vim.keymap.set("n", "<leader>tw", function()
+  if vim.opt.list:get() then
+    vim.opt.list = false
+    print("Whitespace OFF")
+  else
+    vim.opt.list = true
+    print("Whitespace ON")
+  end
+end, { desc = "[T]oggle [W]hitespace" })
