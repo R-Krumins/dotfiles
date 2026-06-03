@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v fzf >/dev/null 2>&1; then
+  printf 'Error: fzf is not installed or not in PATH.\n' >&2
+  exit 1
+fi
+
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+  printf 'Error: not inside a git repository.\n' >&2
+  exit 1
+fi
+
+selected=$(
+  git for-each-ref --sort=-committerdate --format='%(refname:short)%09%(subject)' refs/heads refs/remotes \
+    | sed '/^origin\/HEAD$/d' \
+    | fzf \
+      --delimiter=$'\t' \
+      --with-nth=1,2 \
+      --nth=1,2 \
+      --prompt='Git branch > ' \
+      --height=80% \
+      --layout=reverse
+)
+
+if [[ -z "${selected:-}" ]]; then
+  exit 0
+fi
+
+selected=${selected%%$'\t'*}
+
+if git show-ref --verify --quiet "refs/heads/$selected"; then
+  git switch "$selected"
+  exit 0
+fi
+
+remote=${selected%%/*}
+branch=${selected#*/}
+
+if [[ "$remote" == "$selected" || -z "$branch" ]]; then
+  printf 'Error: selected branch is not a local or remote branch: %s\n' "$selected" >&2
+  exit 1
+fi
+
+git switch --track "$selected"

@@ -9,9 +9,10 @@ $git_status\
 $git_metrics\
 $docker_context\
 $container\
-$python\
-$cmd_duration
+$python
 $character"""
+
+right_format = "$cmd_duration$time"
 
 [git_metrics]
 disabled = false
@@ -31,3 +32,8 @@ error_symbol = '[⋗](bold red)'
 [directory]
 style = 'cyan'
 truncation_length = 16
+
+[time]
+disabled = false
+style = 'gray'
+format = "$time"

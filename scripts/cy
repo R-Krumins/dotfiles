@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+script_dir="/home/rainers/work/Insaku/react-web/integration-tests"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./cy run [--environment <env>] [--platform <platform>] [--spec <spec>] [-- <cypress args>]
+  ./cy open [--environment <env>] [--platform <platform>] [--spec <spec>] [-- <cypress args>]
+
+Options:
+  -e, --environment   Environment to test: local, docker, uat, prod
+  -p, --platform      Platform to test: insaku, finsaku
+  -s, --spec          Cypress spec name from cypress/e2e
+  -h, --help          Show this help
+
+Examples:
+  ./cy run
+  ./cy open -e docker -p insaku
+  ./cy run -s loan
+EOF
+}
+
+if [[ $# -eq 0 ]]; then
+  usage
+  exit 1
+fi
+
+command=""
+environment=""
+platform=""
+spec=""
+cypress_args=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    run|open)
+      if [[ -n "$command" ]]; then
+        echo "Only one Cypress command can be provided." >&2
+        exit 1
+      fi
+      command="$1"
+      shift
+      ;;
+    -e|--environment)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for $1." >&2
+        exit 1
+      fi
+      environment="$2"
+      shift 2
+      ;;
+    -p|--platform)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for $1." >&2
+        exit 1
+      fi
+      platform="$2"
+      shift 2
+      ;;
+    -s|--spec)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for $1." >&2
+        exit 1
+      fi
+      spec="$2"
+      shift 2
+      ;;
+    --)
+      shift
+      cypress_args+=("$@")
+      break
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      echo "Pass Cypress arguments after --." >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$command" ]]; then
+  echo "Missing Cypress command: run or open." >&2
+  usage
+  exit 1
+fi
+
+spec_path=""
+if [[ -n "$spec" ]]; then
+  if [[ "$spec" == */* || "$spec" == *.cy.* ]]; then
+    spec_path="$spec"
+  else
+    spec_path="cypress/e2e/$spec.cy.ts"
+  fi
+fi
+
+if [[ "$command" == "open" && -n "$spec_path" ]]; then
+  args=("run" "--browser" "chrome" "--headed" "--no-exit")
+else
+  args=("$command" "--browser" "chrome")
+fi
+
+if [[ -n "$environment" ]]; then
+  args+=("--expose" "environment=$environment")
+fi
+
+if [[ -n "$platform" ]]; then
+  args+=("--expose" "platform=$platform")
+fi
+
+if [[ -n "$spec_path" ]]; then
+  args+=("--spec" "$spec_path")
+fi
+
+args+=("${cypress_args[@]}")
+
+cd "$script_dir"
+exec npx cypress "${args[@]}"

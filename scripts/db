@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+DB_SQL_FILE="$SCRIPT_DIR/db.sql"
+DB_URL="${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/insaku}"
+
+usage() {
+  cat <<EOF
+Usage:
+  ./db <command> [args...]
+  ./db edit
+
+Commands:
+  edit
+$(list_commands)
+
+Queries can use supplied args as psql variables: :'arg1', :'arg2', ...
+
+Environment:
+  DATABASE_URL Override the PostgreSQL connection URL.
+EOF
+}
+
+list_commands() {
+  if [[ ! -f "$DB_SQL_FILE" ]]; then
+    return 0
+  fi
+
+  awk '/^--[[:space:]]+[A-Za-z0-9_-]+[[:space:]]*$/ { print "  " $2 }' "$DB_SQL_FILE"
+}
+
+extract_query() {
+  local command="$1"
+
+  awk -v command="$command" '
+    /^--[[:space:]]+[A-Za-z0-9_-]+[[:space:]]*$/ {
+      active = ($2 == command)
+      found = found || active
+      next
+    }
+    active { print }
+    END { exit found ? 0 : 2 }
+  ' "$DB_SQL_FILE"
+}
+
+run_command() {
+  local command="$1"
+  shift || true
+
+  if [[ ! -f "$DB_SQL_FILE" ]]; then
+    echo "Missing SQL command file: $DB_SQL_FILE" >&2
+    exit 1
+  fi
+
+  local query
+  if ! query="$(extract_query "$command")"; then
+    echo "Unknown command: $command" >&2
+    usage >&2
+    exit 1
+  fi
+
+  local psql_args=(
+    "$DB_URL"
+    --set=ON_ERROR_STOP=1
+    --pset=pager=off
+    --pset=footer=off
+  )
+
+  for i in {1..9}; do
+    psql_args+=("--set=arg$i=")
+  done
+
+  local arg_index=1
+  for arg in "$@"; do
+    psql_args+=("--set=arg$arg_index=$arg")
+    arg_index=$((arg_index + 1))
+  done
+
+  psql "${psql_args[@]}" <<< "$query"
+}
+
+edit_queries() {
+  local editor="${VISUAL:-${EDITOR:-}}"
+
+  if [[ -z "$editor" ]]; then
+    if command -v sensible-editor >/dev/null 2>&1; then
+      editor="sensible-editor"
+    elif command -v editor >/dev/null 2>&1; then
+      editor="editor"
+    elif command -v nano >/dev/null 2>&1; then
+      editor="nano"
+    elif command -v vi >/dev/null 2>&1; then
+      editor="vi"
+    else
+      echo "No editor found. Set VISUAL or EDITOR." >&2
+      exit 1
+    fi
+  fi
+
+  "$editor" "$DB_SQL_FILE"
+}
+
+command="${1:-}"
+shift || true
+
+case "$command" in
+  -h|--help|help)
+    usage
+    ;;
+  edit)
+    edit_queries
+    ;;
+  "")
+    usage >&2
+    exit 1
+    ;;
+  *)
+    run_command "$command" "$@"
+    ;;
+esac
