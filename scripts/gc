@@ -12,12 +12,44 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
   exit 1
 fi
 
+refs=(refs/heads)
+
+if [[ "${1:-}" == "--origin" || "${1:-}" == "-o" ]]; then
+  refs+=(refs/remotes)
+  shift
+fi
+
+if [[ $# -gt 0 ]]; then
+  printf 'Usage: gc [-o|--origin]\n' >&2
+  exit 1
+fi
+
 selected=$(
-  git for-each-ref --sort=-committerdate --format='%(refname:short)%09%(subject)' refs/heads refs/remotes \
-    | sed '/^origin\/HEAD$/d' \
+  git for-each-ref --sort=-committerdate --format='%(refname)%09%(refname:short)%09%(subject)' "${refs[@]}" \
+    | awk -F '\t' '
+      $1 == "refs/remotes/origin/HEAD" {
+        next
+      }
+
+      {
+        branch = $2
+        subject = $3
+        rows[++count] = branch "\t" subject
+        if (length(branch) > width) {
+          width = length(branch)
+        }
+      }
+
+      END {
+        for (i = 1; i <= count; i++) {
+          split(rows[i], fields, "\t")
+          printf "%s\t%-*s    %s\n", fields[1], width, fields[1], fields[2]
+        }
+      }
+    ' \
     | fzf \
       --delimiter=$'\t' \
-      --with-nth=1,2 \
+      --with-nth=2 \
       --nth=1,2 \
       --prompt='Git branch > ' \
       --height=80% \
