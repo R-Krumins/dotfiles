@@ -22,7 +22,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 })
 
 -- Default color scheme
-vim.cmd.colorscheme "tokyonight-night"
+vim.cmd.colorscheme "gruber-darker"
 
 -- Inline diognostics
 vim.diagnostic.config({
