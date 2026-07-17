@@ -1,51 +1,61 @@
-require("custom.options")
-require("custom.lazy")
-
---vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { desc = 'Yank to system clipbaord' })
-
-vim.api.nvim_create_autocmd('TextYankPost', {
-  desc = 'Highlight when yanking (copying) text',
-  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
-  callback = function()
-    vim.highlight.on_yank()
-  end,
+vim.pack.add({
+	{ src = "https://github.com/blazkowolf/gruber-darker.nvim" },
+	{ src = "https://github.com/nvim-mini/mini.pick" },
+    { src = "https://github.com/neovim/nvim-lspconfig" },
+    { src = "https://github.com/mason-org/mason.nvim" },
 })
 
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Clear highlight search'})
+vim.g.mapleader = " "
+vim.cmd.colorscheme("gruber-darker")
 
--- Fomat on save
-vim.api.nvim_create_autocmd("BufWritePre", {
-  pattern = { "*.rs", "*.go" },
-  callback = function()
-    vim.lsp.buf.format({ async = false })
-  end,
-})
+-- add color highlight to mini.pick selected search item (for gruber-darker)
+vim.api.nvim_set_hl(0, "MiniPickMatchCurrent", { bg = "#453d41", bold = true })
 
--- Default color scheme
-vim.cmd.colorscheme "gruber-darker"
+vim.keymap.set("n", "<C-j>", "<C-w>j")
+vim.keymap.set("n", "<C-k>", "<C-w>k")
 
--- Inline diognostics
-vim.diagnostic.config({
-	virtual_text = true
-})
+vim.keymap.set("n", "<leader>rn", function()
+  vim.cmd.source(vim.env.MYVIMRC)
+  print("Config reloaded")
+end)
 
--- TODO: Create a file for remaps
-vim.keymap.set('n', '<C-d>', '<C-d>zz', { noremap = true, silent = true })
-vim.keymap.set('n', '<C-u>', '<C-u>zz', { noremap = true, silent = true })
+vim.opt.clipboard = "unnamedplus"
 
-vim.opt.listchars = {
-  tab = "▸ ",
-  trail = "·",
-  space = "·",
-  eol = "↴",
-}
+require("mini.pick").setup()
+require("mason").setup()
 
-vim.keymap.set("n", "<leader>tw", function()
-  if vim.opt.list:get() then
-    vim.opt.list = false
-    print("Whitespace OFF")
-  else
-    vim.opt.list = true
-    print("Whitespace ON")
-  end
-end, { desc = "[T]oggle [W]hitespace" })
+vim.lsp.enable("lua_ls")
+
+vim.keymap.set("n", "<C-f>", MiniPick.builtin.files);
+vim.keymap.set("n", "<leader>sh", MiniPick.builtin.help);
+vim.keymap.set("n", "<leader>sg", MiniPick.builtin.grep_live);
+vim.keymap.set("n", "<leader>sb", MiniPick.builtin.buffers);
+
+-- Tabs
+vim.opt.tabstop = 4
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = true
+vim.opt.smartindent = true
+vim.opt.autoindent = true -- Copy indent from current line
+
+-- Line Numbers
+vim.opt.number = true
+vim.opt.relativenumber = true
+
+vim.opt.ignorecase = true -- case insensitive search
+vim.opt.smartcase = true -- case sensitive search if search term includes uppercase
+
+vim.opt.undofile = true -- Save undo history
+
+vim.opt.cursorline = false -- highlight current line
+
+vim.opt.signcolumn = 'yes' -- Keep signcolumn on by default
+
+-- Don't show the mode, since it's already in the status line
+-- vim.opt.showmode = false
+
+vim.g.have_nerd_font = true -- Nerd font
+
+vim.opt.autoread = true -- auto-reload if changes outside of nvim
+
+vim.opt.iskeyword:append("-") -- include '-' in words
