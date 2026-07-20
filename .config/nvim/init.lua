@@ -59,3 +59,5 @@ vim.g.have_nerd_font = true -- Nerd font
 vim.opt.autoread = true -- auto-reload if changes outside of nvim
 
 vim.opt.iskeyword:append("-") -- include '-' in words
+
+require("vim._core.ui2").enable()
