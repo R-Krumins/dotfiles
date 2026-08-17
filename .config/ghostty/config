@@ -1,14 +1,14 @@
-#background-opacity = 0.9
-#background-blur = true 
-#background = #000000
-#theme = Kanagawa Dragon
-theme = Gruber Darker
-gtk-titlebar-hide-when-maximized = true
-#window-decoration = none
-
-# window-padding-balance = true
-window-padding-x = 4
-# window-padding-y = 0
 window-padding-color = extend
+window-decoration = false
 
 confirm-close-surface = false
+#gtk-titlebar-hide-when-maximized = true
+confirm-close-surface = false
+
+shell-integration = detect
+shell-integration-features = cursor,sudo,title,no-cursor
+
+config-file = theme
+
+
+

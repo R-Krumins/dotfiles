@@ -1,0 +1,118 @@
+#!/bin/node
+import fs from "fs";
+import path from "node:path";
+import { spawnSync } from "child_process";
+
+const CONFIG_PATH = {
+    ghostty: home("dotfiles/.config/ghostty/theme"),
+    neovim: home("/dotfiles/.config/nvim/lua/theme.lua"),
+    wallpapers: home("/Pictures/wallpapers/"),
+}
+
+const THEME = {
+    zen: {
+        transparent: false,
+        ghostty: "Kanagawa Dragon",
+        neovim: "luna",
+        background: "to_the_moon.jpg",
+    },
+    femboy: {
+        transparent: true,
+        ghostty: "Ayu",
+        neovim: "ayu-dark",
+        background: "mountain_sunset.jpg",
+    },
+    rosepine: {
+        transparent: false,
+        ghostty: "Rose Pine",
+        neovim: "rose-pine",
+        background: "purple_sky.png",
+    }
+}
+
+function main() {
+    const args = parse_args();
+    if (args.list_themes) {
+        list_themes();
+        return;
+    }
+    updateGhosttyConfig(args.theme);
+    updateNeovimConfig(args.theme);
+    updateWallpaper(args.theme);
+}
+
+function updateGhosttyConfig(theme) {
+    let content = fs.readFileSync(CONFIG_PATH.ghostty, "utf8");
+
+    const update = (key, value) => {
+        const search = new RegExp(`${key}\\s*=.*\\n`, "g");
+        const replace = `${key} = ${value}\n`;
+        content = content.replace(search, replace);
+    }
+
+    if (theme.transparent) {
+        update("background-opacity", 0.85);
+        update("background-blur", true);
+    } else {
+        update("background-opacity", 1.00);
+        update("background-blur", false);
+    }
+
+    update("theme", theme.ghostty);
+
+    fs.writeFileSync(CONFIG_PATH.ghostty, content);
+}
+
+function updateNeovimConfig(theme) {
+    let content = fs.readFileSync(CONFIG_PATH.neovim, "utf8");
+    content = content.replace(
+       /vim\.cmd\.colorscheme\s+"[^"\r\n]*"/g,
+        `vim.cmd.colorscheme "${theme.neovim}"`
+    );
+    fs.writeFileSync(CONFIG_PATH.neovim, content);
+}
+
+function updateWallpaper(theme) {
+    if (!theme.background) return;
+    const img_path = path.join(CONFIG_PATH.wallpapers, theme.background);
+    const result = spawnSync("dms", ["ipc", "call", "wallpaper", "set", img_path], {
+        encoding: "utf8",
+    });
+    assert(result.status === 0, `Failed to set wallpaper: ${result.stderr}`)
+}
+
+function parse_args() {
+    const args = process.argv.slice(2);
+    assert(args[0], "Must provide a theme");
+    if (args[0] === "--list") {
+        return {
+            list_themes: true,
+        }
+    }
+    assert(args[0] in THEME, `Unrecongized theme: ${args[0]}`);
+    return {
+        theme: THEME[args[0]],
+        list_themes: false,
+    }
+}
+
+function list_themes() {
+   for (const theme in THEME) {
+        console.log(theme);
+   }
+}
+
+function home(pathSuffix) {
+    const home = process.env.HOME;
+    assert(home, "could not determine HOME path");
+    return path.join(home, pathSuffix)
+}
+
+function assert(assertion, msg) {
+    if (!assertion) {
+        console.error(msg);
+        process.exit(1);
+    }
+}
+
+main()

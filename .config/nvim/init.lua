@@ -1,51 +1,15 @@
-require("custom.options")
-require("custom.lazy")
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
 
---vim.api.nvim_set_keymap('v', '<C-c>', '"+y', { desc = 'Yank to system clipbaord' })
+require "lazy_init"
+require "options"
+require "keymaps"
+require "commands"
+require "run"
 
-vim.api.nvim_create_autocmd('TextYankPost', {
-  desc = 'Highlight when yanking (copying) text',
-  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
-  callback = function()
-    vim.highlight.on_yank()
-  end,
-})
 
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { desc = 'Clear highlight search'})
+vim.lsp.enable({"lua_ls", "rust_analyzer", "ts_ls"})
+vim.diagnostic.config({virtual_text = true})
 
--- Fomat on save
-vim.api.nvim_create_autocmd("BufWritePre", {
-  pattern = { "*.rs", "*.go" },
-  callback = function()
-    vim.lsp.buf.format({ async = false })
-  end,
-})
+pcall(require, "theme")
 
--- Default color scheme
-vim.cmd.colorscheme "gruber-darker"
-
--- Inline diognostics
-vim.diagnostic.config({
-	virtual_text = true
-})
-
--- TODO: Create a file for remaps
-vim.keymap.set('n', '<C-d>', '<C-d>zz', { noremap = true, silent = true })
-vim.keymap.set('n', '<C-u>', '<C-u>zz', { noremap = true, silent = true })
-
-vim.opt.listchars = {
-  tab = "▸ ",
-  trail = "·",
-  space = "·",
-  eol = "↴",
-}
-
-vim.keymap.set("n", "<leader>tw", function()
-  if vim.opt.list:get() then
-    vim.opt.list = false
-    print("Whitespace OFF")
-  else
-    vim.opt.list = true
-    print("Whitespace ON")
-  end
-end, { desc = "[T]oggle [W]hitespace" })

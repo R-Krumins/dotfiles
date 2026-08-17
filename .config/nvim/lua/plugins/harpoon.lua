@@ -1,4 +1,4 @@
-return {
+local harpoon =  {
 	{
 		"ThePrimeagen/harpoon",
 		branch = "harpoon2",
@@ -36,3 +36,5 @@ return {
 		end,
 	}
 }
+
+return { harpoon }
