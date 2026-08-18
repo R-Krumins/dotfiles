@@ -42,12 +42,15 @@ function main() {
 }
 
 function updateGhosttyConfig(theme) {
-    let content = fs.readFileSync(CONFIG_PATH.ghostty, "utf8");
+    const cfgPath = CONFIG_PATH.ghostty;
+
+    ensureFileExists(cfgPath);
+    let content = fs.readFileSync(cfgPath, "utf8");
 
     const update = (key, value) => {
         const search = new RegExp(`${key}\\s*=.*\\n`, "g");
         const replace = `${key} = ${value}\n`;
-        content = content.replace(search, replace);
+        content = replaceOrAppend(content, search, replace)
     }
 
     if (theme.transparent) {
@@ -64,16 +67,26 @@ function updateGhosttyConfig(theme) {
 }
 
 function updateNeovimConfig(theme) {
-    let content = fs.readFileSync(CONFIG_PATH.neovim, "utf8");
-    content = content.replace(
-       /vim\.cmd\.colorscheme\s+"[^"\r\n]*"/g,
+    const cfgPath = CONFIG_PATH.neovim;
+
+    ensureFileExists(cfgPath);
+    let content = fs.readFileSync(cfgPath, "utf8");
+
+    content = replaceOrAppend(
+        content,
+        /vim\.cmd\.colorscheme\s+"[^"\r\n]*"/g,
         `vim.cmd.colorscheme "${theme.neovim}"`
     );
-    fs.writeFileSync(CONFIG_PATH.neovim, content);
+
+    fs.writeFileSync(cfgPath, content);
 }
 
 function updateWallpaper(theme) {
     if (!theme.background) return;
+
+    const dmsCheck = spawnSync("which", ["dms"], { stdio: "ignore" });
+    if (dmsCheck.status !== 0) return;
+
     const img_path = path.join(CONFIG_PATH.wallpapers, theme.background);
     const result = spawnSync("dms", ["ipc", "call", "wallpaper", "set", img_path], {
         encoding: "utf8",
@@ -93,6 +106,27 @@ function parse_args() {
     return {
         theme: THEME[args[0]],
         list_themes: false,
+    }
+}
+
+function replaceOrAppend(str, searchRegex, newContent) {
+    if (str.length === 0) {
+        return newContent;
+    }
+
+    if (searchRegex.test(str)) {
+        return str.replace(searchRegex, newContent);
+    }
+
+    return str.endsWith("\n")
+        ? str + newContent
+        : str + "\n" + newContent;
+}
+
+function ensureFileExists(file) {
+    if (!fs.existsSync(file)) {
+        fs.writeFileSync(file, "");
+        console.log("Created:", file);
     }
 }
 
